@@ -1,0 +1,27 @@
+services:
+  opp-server:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OPP_QDRANT_URL=http://qdrant:6333
+      - OPP_SQLITE_PATH=/data/opp_metadata.db
+    volumes:
+      - opp_data:/data
+    depends_on:
+      qdrant:
+        condition: service_started
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+
+volumes:
+  opp_data:
+  qdrant_data:
