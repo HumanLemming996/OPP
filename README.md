@@ -64,6 +64,22 @@ Verification uses a tiered pipeline — fast to accurate:
 2. **CLIP cosine similarity** → Qdrant HNSW vector search, sub-10ms at billions
 3. **PDQ hamming distance** → additional confidence signal on candidates
 
+### Adaptive Variant Tracking
+
+OPP's registry **gets smarter with every verification**. When a query matches with high confidence, the variant's signature is automatically minted and linked to the original:
+
+```
+Original (minted by generator)
+  ├── Screenshot (auto-minted on verify, 94% match)
+  │     └── Crop of screenshot (auto-minted, 93% match)
+  │           └── Re-upload of crop (auto-minted, 95% match)
+  └── Compressed version (auto-minted, 96% match)
+```
+
+Each variant only needs to match its **nearest ancestor**, not the original. So even a heavily degraded image that's been screenshotted, cropped, and re-uploaded multiple times is caught — because the chain never breaks.
+
+The most viral images (highest misuse risk) accumulate the most variants, making them the **hardest to escape detection**. The problem and the solution scale together.
+
 ### Architecture
 
 ```
@@ -100,12 +116,10 @@ docker compose up
 
 This starts the OPP server + Qdrant vector database. Server runs on `http://localhost:8000`.
 
-### Option 2: Install from Source
+### Option 2: Local Install
 
 ```bash
-git clone https://github.com/opp-protocol/opp.git
-cd opp
-pip install -e .
+pip install opp
 ```
 
 ### Mint an Image
@@ -183,7 +197,7 @@ Full protocol specification: [PROTOCOL.md](PROTOCOL.md)
 | Open protocol | ✅ | ✅ | ❌ | ✅ |
 | Billion-scale | ✅ | ✅ | ❌ | ❌ |
 | No gas fees | ✅ | ✅ | ✅ | ❌ |
-| Federated | ✅ | ❌ | ❌ | ✅ |
+| Self-improving registry | ✅ | ❌ | ❌ | ❌ |
 | Generator-agnostic | ✅ | ❌ | ✅ | ✅ |
 
 ## Tech Stack

@@ -331,7 +331,94 @@ federated nodes that sync signatures to the central index:
 
 ---
 
-## 8. Protocol Versioning
+## 8. Adaptive Variant Tracking
+
+### 8.1 Overview
+
+When a verification query produces a high-confidence match, the central
+index SHOULD automatically mint a **variant signature** for the queried
+image and link it to the matched original. This creates a self-improving
+registry that tracks content as it mutates through the distribution
+lifecycle (screenshots, crops, compression, re-uploads).
+
+### 8.2 Variant Minting Threshold
+
+A variant signature is auto-minted when ALL of the following conditions
+are met during a verification query:
+
+- **CLIP cosine similarity** ≥ 0.92
+- **PDQ hamming distance** ≤ 20
+- The queried image's L1 hash does NOT already exist in the index
+  (avoids duplicate entries)
+
+Implementations MAY adjust these thresholds based on empirical data.
+
+### 8.3 Variant Chain
+
+Each variant signature contains a `parent_signature_id` field linking
+it to the matched signature. Variants can chain:
+
+```
+signature_001 (original, minted by generator)
+  ├── signature_002 (screenshot, auto-minted on verify)
+  │     └── signature_003 (crop of screenshot, auto-minted)
+  │           └── signature_004 (re-upload of crop, auto-minted)
+  └── signature_005 (compressed version, auto-minted)
+```
+
+All variants in a chain resolve to the **root signature**, which
+contains the original generator metadata and provenance.
+
+### 8.4 Verify Flow With Variant Tracking
+
+1. Verifier sends image to central index (`POST /v1/verify`)
+2. Central index generates query signature
+3. Tiered matching: L1 → L3 → L2 (as specified in Section 4.2)
+4. If match confidence meets threshold AND L1 hash is new:
+   a. Auto-mint variant signature with `parent_signature_id`
+   b. Store in index (Qdrant + metadata store)
+5. Return match results to verifier (including variant chain)
+
+### 8.5 Properties
+
+This mechanism provides several critical properties:
+
+- **Self-improving registry**: More verification traffic → more variants
+  → higher hit rate → more traffic. A self-reinforcing loop.
+- **Lifecycle tracking**: The full mutation history of an image is
+  preserved — from original generation through every reshare.
+- **Graceful degradation tolerance**: Each variant only needs to match
+  its nearest ancestor, not the root. An image that is 70% similar to
+  the original may be 95% similar to an intermediate variant.
+- **Viral content resilience**: The most widely shared images (highest
+  misuse risk) accumulate the most variants, making them the hardest
+  to escape detection.
+
+### 8.6 Metadata
+
+Variant signatures include additional metadata:
+
+```json
+{
+  "variant_of": "signature_001",
+  "root_signature": "signature_001",
+  "variant_depth": 2,
+  "match_confidence": {
+    "clip_similarity": 0.94,
+    "pdq_distance": 12
+  },
+  "auto_minted": true,
+  "minted_at": "2025-02-13T15:00:00Z"
+}
+```
+
+The `root_signature` field always points to the original generator-minted
+signature, regardless of chain depth. This ensures verifiers can always
+trace back to the original provenance.
+
+---
+
+## 9. Protocol Versioning
 
 All signatures include a `protocol_version` field (e.g. "OPP/1.0").
 This enables:
@@ -345,17 +432,20 @@ it is never changed. New algorithms are added as new layers, not replacements.
 
 ---
 
-## 9. Security Considerations
+## 10. Security Considerations
 
 - **No user data**: OPP stores generator identity, not user identity
 - **Rate limiting**: Implementations SHOULD rate-limit mint and verify requests
 - **No image storage**: OPP nodes store only signatures and metadata, never the original images
 - **Transport security**: All API communication SHOULD use HTTPS
 - **Signature integrity**: Signature IDs are UUIDs; nodes MAY additionally sign records
+- **Variant abuse prevention**: Auto-minted variants inherit the trust
+  level of their parent signature. A variant chain rooted in a revoked
+  signature is itself considered revoked.
 
 ---
 
-## 10. References
+## 11. References
 
 - PDQ Hash: https://github.com/facebook/ThreatExchange/tree/main/pdq
 - CLIP: https://github.com/openai/CLIP
