@@ -100,10 +100,12 @@ docker compose up
 
 This starts the OPP server + Qdrant vector database. Server runs on `http://localhost:8000`.
 
-### Option 2: Local Install
+### Option 2: Install from Source
 
 ```bash
-pip install opp
+git clone https://github.com/opp-protocol/opp.git
+cd opp
+pip install -e .
 ```
 
 ### Mint an Image
