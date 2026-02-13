@@ -3,21 +3,31 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "opp"
+name = "opp-ai-protocol"
 version = "0.1.0"
-description = "Open Provenance Protocol — Shazam for AI-generated images"
-readme = "README.md"
+description = "Open Provenance Protocol — Shazam for AI-generated images. Verify AI image provenance that survives screenshots."
+readme = {file = "README.md", content-type = "text/markdown"}
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
     { name = "OPP Contributors" },
 ]
-keywords = ["ai", "provenance", "image", "hashing", "protocol"]
+keywords = [
+    "ai", "provenance", "image", "hashing", "protocol",
+    "clip", "pdq", "signature", "verification", "deepfake",
+    "c2pa", "content-authenticity", "ai-detection",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Security",
 ]
 
 dependencies = [
@@ -49,9 +59,10 @@ dev = [
 opp = "opp.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/opp-protocol/opp"
-Documentation = "https://github.com/opp-protocol/opp"
-Repository = "https://github.com/opp-protocol/opp"
+Homepage = "https://github.com/HumanLemming996/OPP"
+Documentation = "https://github.com/HumanLemming996/OPP/blob/main/PROTOCOL.md"
+Repository = "https://github.com/HumanLemming996/OPP"
+"Bug Tracker" = "https://github.com/HumanLemming996/OPP/issues"
 
 [tool.setuptools.packages.find]
 include = ["opp*"]
