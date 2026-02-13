@@ -119,7 +119,7 @@ This starts the OPP server + Qdrant vector database. Server runs on `http://loca
 ### Option 2: Local Install
 
 ```bash
-pip install opp
+pip install opp-ai-protocol
 ```
 
 ### Mint an Image
